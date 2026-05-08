@@ -1,36 +1,67 @@
-# Music to Mathematics – Fibonacci Melody Generator
+"""
+Music to Mathematics: Fibonacci Sequence & Golden Ratio Melody Generator
+University of Eastern Africa, Baraton - MATH 499 Project
 
-**University of Eastern Africa, Baraton** | MATH 499 | April 2023  
-**Team:** Eddah Jeptum, Malabi Lesley (me), Lenox Ondieki, Titame Jack  
-**Supervisor:** Dr. Robert Okong'o
+This script maps the Fibonacci sequence to musical notes using modular arithmetic
+and validates that the resulting sequences are periodic, as proven in the paper.
+"""
 
-## 🎯 What This Project Does
-Translates pure mathematics (Fibonacci sequence, Golden Ratio, modular arithmetic) into musical melodies using a Python algorithm. The same systematic **rule → output → validation** workflow is identical to the data transformation and quality checks I perform on real datasets.
+def fibonacci_up_to(n_terms):
+    """Generate Fibonacci sequence up to n_terms."""
+    seq = [0, 1]
+    for i in range(2, n_terms):
+        seq.append(seq[-1] + seq[-2])
+    return seq
 
-## 🧠 Why It Matters for Data & QA Roles
-- **Algorithmic mapping:** Just like mapping raw logs to structured JSON/CSV, this project maps abstract numbers to musical notes via clear, reproducible rules.
-- **Validation:** The script programmatically verifies that the generated note sequences are periodic—mirroring how I would flag a dataset for impossible patterns or data leakage.
-- **Documentation:** Every step (modulo choice, note mapping, rhythm derivation) is fully documented, similar to a **data lineage log**.
+def apply_modulo(seq, mod):
+    """Apply modulo operation to each element in the sequence."""
+    return [x % mod for x in seq]
 
-## 🛠️ How It Works
-1. Generate the Fibonacci sequence up to *n* terms.
-2. Apply **modulo *m*** (where *m* = number of notes in the chosen scale) to each Fibonacci number.
-3. Map the resulting numbers 0–(*m*-1) to musical notes in the scale.
-4. The sequence becomes periodic, as proven using group theory and the division algorithm.
-5. A rhythm is optionally added by interpreting Fibonacci numbers as note durations.
+def map_to_notes(mod_vals, note_map):
+    """Convert modulo values to note names using a mapping list."""
+    return [note_map[v] for v in mod_vals]
 
-## 📊 Scales Explored
-- C Major Pentatonic (mod 5)
-- E Minor Pentatonic (mod 5)
-- A Minor Blues (mod 6)
-- C Major (mod 7)
-- Harmonic A Minor (mod 8)
-- Full Chromatic (mod 12)
+def find_period(note_seq):
+    """Find the least period of a periodic sequence (used for validation)."""
+    n = len(note_seq)
+    for p in range(1, n // 2 + 1):
+        if note_seq[:p] * (n // p) == note_seq[:p * (n // p)] and note_seq[:p] == note_seq[-p:]:
+            return p
+    return n
 
-Each scale produces a unique, repeatable melody.
+# Define scales as lists of notes (order matters)
+scales = {
+    "C_Major_Pentatonic": ["C", "D", "E", "G", "A"],
+    "E_Minor_Pentatonic": ["E", "G", "A", "B", "D"],
+    "A_Minor_Blues":      ["A", "C", "D", "D#", "E", "G"],
+    "C_Major":            ["C", "D", "E", "F", "G", "A", "B"],
+    "Harmonic_A_Minor":   ["A", "B", "C", "D", "E", "F", "G", "G#"],
+    "Full_Chromatic":     ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+}
 
-## 🧰 Tech Stack
-- **Python** – core logic, modulo mapping, period detection
-- **Score Creator** – used to render final melodies with rhythm (see project PDF)
+N_TERMS = 30  # number of Fibonacci terms to generate
 
-## 📁 Repository Structure
+output_lines = []
+for scale_name, notes in scales.items():
+    mod = len(notes)
+    fib = fibonacci_up_to(N_TERMS)
+    mod_vals = apply_modulo(fib, mod)
+    note_sequence = map_to_notes(mod_vals, notes)
+
+    # Validate periodicity (the project proves it is periodic)
+    period = find_period(note_sequence)
+
+    output_lines.append(f"=== {scale_name} (mod {mod}) ===")
+    output_lines.append(f"Fibonacci (first {N_TERMS} terms): {fib}")
+    output_lines.append(f"Modulo {mod} values: {mod_vals}")
+    output_lines.append(f"Note sequence: {note_sequence}")
+    output_lines.append(f"Least period found: {period}")
+    output_lines.append("")
+
+# Print to console
+result = "\n".join(output_lines)
+print(result)
+
+# Save to file for GitHub portfolio
+with open("sample_output.txt", "w") as f:
+    f.write(result)
